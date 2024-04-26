@@ -1,4 +1,3 @@
-
 -- This is a SQL script that lists all bands with "Glam rock" as their main style,
 -- ranked by their longevity till year 2022
 --
