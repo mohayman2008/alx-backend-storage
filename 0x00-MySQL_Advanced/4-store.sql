@@ -4,7 +4,7 @@
 -- Quantity in the table items can be negative.
 DELIMITER //
 
-CREATE TRIGGER IF NOT EXISTS update_quantity
+CREATE TRIGGER update_quantity
 AFTER INSERT ON `orders`
 FOR EACH ROW 
 	BEGIN
