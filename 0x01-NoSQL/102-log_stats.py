@@ -21,13 +21,14 @@ def main():
 
     ips = nginx_logs.aggregate([
         {"$group": {"_id": "$ip", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
+        {"$project": {"ip": "$_id", "count": 1, "_id": 0}},
+        {"$sort": {"count": -1, "ip": -1}},
         {"$limit": 10}
     ])
 
     print("IPs:")
     for ip in ips:
-        print("\t{}: {}".format(ip.get("_id"), ip.get("count")))
+        print("\t{}: {}".format(ip.get("ip"), ip.get("count")))
 
     client.close()
 
