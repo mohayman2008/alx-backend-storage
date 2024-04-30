@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''This script contains the definition for the coroutine "list_all"'''
+'''This module contains the definition for the function "list_all"'''
 
 
 def list_all(mongo_collection):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''This script contains the definition for the coroutine "insert_school"'''
+'''This module contains the definition for the function "insert_school"'''
 
 
 def insert_school(mongo_collection, **kwargs):

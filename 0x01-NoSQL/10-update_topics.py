@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''This script contains the definition for the coroutine "update_topics"'''
+'''This module contains the definition for the function "update_topics"'''
 
 
 def update_topics(mongo_collection, name, topics):
