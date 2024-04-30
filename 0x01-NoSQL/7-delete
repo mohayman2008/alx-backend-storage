@@ -1,0 +1,5 @@
+// MongoDB script that deletes all documents with 'name'='Holberton school' in the collection `school`:
+//      The database name should be passed as option of mongo command
+
+db.school.remove({"name": "Holberton school"},
+                 {multi:true})

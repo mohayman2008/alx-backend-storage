@@ -1,5 +1,4 @@
-// MongoDB script adds a new attribute to a document in the collection `school`:
-
+// MongoDB script adds that a new attribute to a document in the collection `school`:
 //      Updates all and only documents with name="Holberton school"
 //      Adds the attribute "address" with the value "972 Mission street" to the matched documents
 //      The database name should be passed as option of mongo command
