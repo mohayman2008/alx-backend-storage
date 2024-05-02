@@ -29,7 +29,7 @@ def call_history(method: Callable) -> Callable:
         '''Wrapper function to be returned'''
         if isinstance(self._redis, redis.Redis):
             key = method.__qualname__
-            with self._redis  pipe:
+            with self._redis.pipeline() as pipe:
                 pipe.rpush(key + ":inputs", str(args))
                 result = method(self, *args, **kwargs)
                 pipe.rpush(key + ":outputs", str(result))
