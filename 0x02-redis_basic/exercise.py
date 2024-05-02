@@ -12,13 +12,13 @@ class Cache:
     def __init__(self):
         '''__init__: class instances constructor'''
         self._redis = redis.Redis()
-        self._redis.flushdb
+        self._redis.flushdb()
 
     def store(self, data: Union[str, bytes, int, float]) -> Optional[str]:
         '''Stores <data> in Redis using randomly generated key
         and returns that key'''
-        if type(data) not in [str, bytes, int, float]:
-            return None
+        # if type(data) not in [str, bytes, int, float]:
+        #     return None
 
         key = str(uuid4())
         self._redis.set(key, data)
