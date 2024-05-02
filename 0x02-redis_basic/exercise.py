@@ -43,11 +43,11 @@ def replay(method: Callable) -> None:
     red = redis.Redis()
     q_name = method.__qualname__
 
-    count = int(redis.get(q_name))
+    count = int(red.get(q_name))
     print(f"{q_name} was called {count} times:")
 
-    inputs = redis.lrange(q_name + ":inputs", 0, -1)
-    outputs = redis.lrange(q_name + ":outputs", 0, -1)
+    inputs = red.lrange(q_name + ":inputs", 0, -1)
+    outputs = red.lrange(q_name + ":outputs", 0, -1)
     for args, ret in zip(inputs, outputs):
         print(f"{q_name}(*{args.decode('utf-8')}) -> {ret.decode('utf-8')}")
 
