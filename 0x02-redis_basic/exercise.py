@@ -51,6 +51,7 @@ def replay(method: Callable) -> None:
     for args, ret in zip(inputs, outputs):
         print(f"{q_name}(*{args.decode('utf-8')}) -> {ret.decode('utf-8')}")
 
+
 class Cache:
     '''A class to manage caching to REDIS database'''
 
@@ -90,10 +91,3 @@ class Cache:
         '''Get the value associated <key> in Redis db as an integer'''
 
         return self.get(key, int)
-
-
-cache = Cache()
-cache.store("foo")
-cache.store("bar")
-cache.store(42)
-replay(cache.store)
