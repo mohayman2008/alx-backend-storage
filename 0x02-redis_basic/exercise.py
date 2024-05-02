@@ -14,10 +14,33 @@ def count_calls(method: Callable[..., Any]) -> Callable[..., Any]:
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         '''Wrapper function to be returned'''
-        key = method.__qualname__
-        self._redis.incr(key)
+        if isinstance(self._redis, redis.Redis):
+            key = method.__qualname__
+            self._redis.incr(key)
         return method(self, *args, **kwargs)
     return wrapper
+
+
+def call_history(method: Callable[..., Any]) -> Callable[..., Any]:
+    '''Decorator function'''
+
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        '''Wrapper function to be returned'''
+        if isinstance(self._redis, redis.Redis):
+            key = method.__qualname__
+            with self._redis.pipeline() as pipe:
+                for arg in args:
+                    pipe.rpush(key + ":inputs", str(arg))
+                result = method(self, *args, **kwargs)
+                pipe.rpush(key + ":outputs", str(result))
+                pipe.execute()
+        return result
+    return wrapper
+
+
+def replay(method: Callable[..., Any]) -> None:
+    '''Displays the history of calls of a particular function'''
 
 
 class Cache:
@@ -29,6 +52,7 @@ class Cache:
         self._redis.flushdb()
 
     @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         '''Stores <data> in Redis using randomly generated key
         and returns that key'''
