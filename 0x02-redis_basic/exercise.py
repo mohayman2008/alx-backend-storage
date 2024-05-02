@@ -27,11 +27,12 @@ def call_history(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         '''Wrapper function to be returned'''
+        result = method(self, *args, **kwargs)
+
         if isinstance(self._redis, redis.Redis):
             key = method.__qualname__
             with self._redis.pipeline() as pipe:
                 pipe.rpush(key + ":inputs", str(args))
-                result = method(self, *args, **kwargs)
                 pipe.rpush(key + ":outputs", str(result))
                 pipe.execute()
         return result
