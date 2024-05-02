@@ -4,7 +4,7 @@ from functools import wraps
 from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
-from redis import Redis
+import redis
 
 
 def count_calls(method: Callable) -> Callable:
@@ -40,7 +40,7 @@ def call_history(method: Callable) -> Callable:
 
 def replay(method: Callable) -> None:
     '''Displays the history of calls of a particular Cache <method>'''
-    redis = Redis()
+    red = redis.Redis()
     q_name = method.__qualname__
 
     count = int(redis.get(q_name))
@@ -57,7 +57,7 @@ class Cache:
 
     def __init__(self):
         '''__init__: class instances constructor'''
-        self._redis = Redis()
+        self._redis = redis.Redis()
         self._redis.flushdb()
 
     @count_calls
