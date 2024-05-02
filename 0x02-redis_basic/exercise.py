@@ -14,9 +14,10 @@ def count_calls(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         '''Wrapper function to be returned'''
-        if isinstance(self._redis, redis.Redis):
-            key = method.__qualname__
-            self._redis.incr(key)
+
+        key = method.__qualname__
+        self._redis.incr(key)
+
         return method(self, *args, **kwargs)
     return wrapper
 
@@ -29,12 +30,10 @@ def call_history(method: Callable) -> Callable:
         '''Wrapper function to be returned'''
         result = method(self, *args, **kwargs)
 
-        if isinstance(self._redis, redis.Redis):
-            key = method.__qualname__
-            with self._redis.pipeline() as pipe:
-                pipe.rpush(key + ":inputs", str(args))
-                pipe.rpush(key + ":outputs", str(result))
-                pipe.execute()
+        key = method.__qualname__
+        self._redis.rpush(key + ":inputs", str(args))
+        self._redis.rpush(key + ":outputs", str(result))
+
         return result
     return wrapper
 
