@@ -7,7 +7,7 @@ from uuid import uuid4
 import redis
 
 
-def count_calls(method: Callable[..., Any]) -> Callable[..., Any]:
+def count_calls(method: Callable) -> Callable:
     '''Decorator function to count how many times methods of the Cache class
     are called and using the same REDIS db as storage'''
 
@@ -21,7 +21,7 @@ def count_calls(method: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def call_history(method: Callable[..., Any]) -> Callable[..., Any]:
+def call_history(method: Callable) -> Callable:
     '''Decorator function'''
 
     @wraps(method)
@@ -30,8 +30,7 @@ def call_history(method: Callable[..., Any]) -> Callable[..., Any]:
         if isinstance(self._redis, redis.Redis):
             key = method.__qualname__
             with self._redis.pipeline() as pipe:
-                for arg in args:
-                    pipe.rpush(key + ":inputs", str(arg))
+                pipe.rpush(key + ":inputs", str(args))
                 result = method(self, *args, **kwargs)
                 pipe.rpush(key + ":outputs", str(result))
                 pipe.execute()
@@ -39,8 +38,33 @@ def call_history(method: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def replay(method: Callable[..., Any]) -> None:
+def replay(fn: Callable) -> None:
     '''Displays the history of calls of a particular function'''
+    r = redis.Redis()
+    function_name = fn.__qualname__
+    value = r.get(function_name)
+    try:
+        value = int(value.decode("utf-8"))
+    except Exception:
+        value = 0
+
+    print("{} was called {} times:".format(function_name, value))
+    inputs = r.lrange("{}:inputs".format(function_name), 0, -1)
+
+    outputs = r.lrange("{}:outputs".format(function_name), 0, -1)
+
+    for input, output in zip(inputs, outputs):
+        try:
+            input = input.decode("utf-8")
+        except Exception:
+            input = ""
+
+        try:
+            output = output.decode("utf-8")
+        except Exception:
+            output = ""
+
+        print("{}(*{}) -> {}".format(function_name, input, output))
 
 
 class Cache:
