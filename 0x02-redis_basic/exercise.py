@@ -7,7 +7,7 @@ from uuid import uuid4
 import redis
 
 
-def count_calls(method: Callable[..., Any]):
+def count_calls(method: Callable[..., Any]) -> Callable[..., Any]:
     '''Decorator function to count how many times methods of the Cache class
     are called and using the same REDIS db as storage'''
 
