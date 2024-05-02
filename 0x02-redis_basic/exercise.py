@@ -4,7 +4,7 @@ from functools import wraps
 from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
-import redis
+from redis import Redis
 
 
 def count_calls(method: Callable) -> Callable:
@@ -38,41 +38,25 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
-def replay(fn: Callable) -> None:
-    '''Displays the history of calls of a particular function'''
-    r = redis.Redis()
-    function_name = fn.__qualname__
-    value = r.get(function_name)
-    try:
-        value = int(value.decode("utf-8"))
-    except Exception:
-        value = 0
+def replay(method: Callable) -> None:
+    '''Displays the history of calls of a particular Cache <method>'''
+    redis = Redis()
+    q_name = method.__qualname__
 
-    print("{} was called {} times:".format(function_name, value))
-    inputs = r.lrange("{}:inputs".format(function_name), 0, -1)
+    count = int(redis.get(q_name))
+    print(f"{q_name} was called {count} times:")
 
-    outputs = r.lrange("{}:outputs".format(function_name), 0, -1)
-
-    for input, output in zip(inputs, outputs):
-        try:
-            input = input.decode("utf-8")
-        except Exception:
-            input = ""
-
-        try:
-            output = output.decode("utf-8")
-        except Exception:
-            output = ""
-
-        print("{}(*{}) -> {}".format(function_name, input, output))
-
+    inputs = redis.lrange(q_name + ":inputs", 0, -1)
+    outputs = redis.lrange(q_name + ":outputs", 0, -1)
+    for args, ret in zip(inputs, outputs):
+        print(f"{q_name}(*{args.decode('utf-8')}) -> {ret.decode('utf-8')}")
 
 class Cache:
     '''A class to manage caching to REDIS database'''
 
     def __init__(self):
         '''__init__: class instances constructor'''
-        self._redis = redis.Redis()
+        self._redis = Redis()
         self._redis.flushdb()
 
     @count_calls
@@ -106,3 +90,10 @@ class Cache:
         '''Get the value associated <key> in Redis db as an integer'''
 
         return self.get(key, int)
+
+
+cache = Cache()
+cache.store("foo")
+cache.store("bar")
+cache.store(42)
+replay(cache.store)
