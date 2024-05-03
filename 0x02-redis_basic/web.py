@@ -22,9 +22,11 @@ def get_page(url: str) -> str:
         else:
             res = requests.get(url).text
             redis.setex(url, timedelta(seconds=10), res)
+            redis.setex("cache:" + url, timedelta(seconds=10), res)
 
-        key = "count:{" + url + "}"
-        redis.incr(key)
+        # key = "count:{" + url + "}"
+        # redis.incr(key)
+        redis.hincrby("count", url, 1)
 
     return res
 
@@ -35,6 +37,10 @@ if __name__ == "__main__":
     url = "http://slowwly.robertomurray.co.uk"
     print(get_page(url)[:1000])
     # print(redis.get(f"count:{{{url}}}"))
+    print(redis.hget("count", url))
+    # get_page(url)
+    # get_page(url)
+    print(redis.hget("count", url))
 
-    redis.flushdb()
+    # redis.flushdb()
     redis.quit()
