@@ -12,7 +12,7 @@ def get_page(url: str) -> str:
     track how many times it was accessed and cache the access count with the
     key "count:{url}" and an expiration time of 10 seconds.
     It returns the requested HTML content
-
+    ---
     url: the url to be requested
     '''
     with Redis() as redis:
