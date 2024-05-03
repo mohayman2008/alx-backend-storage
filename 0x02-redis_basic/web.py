@@ -28,6 +28,7 @@ def get_page(url: str) -> str:
 
     return res
 
+
 if __name__ == "__main__":
     redis = Redis()
 
