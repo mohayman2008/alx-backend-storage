@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 '''This module contains the definition of the function "get_page"'''
+
 from datetime import timedelta
 # from functools import wraps
 
@@ -23,6 +24,8 @@ def get_page(url: str) -> str:
             res = requests.get(url).text
             redis.setex(url, timedelta(seconds=10), res)
             redis.setex("cache:" + url, timedelta(seconds=10), res)
+            redis.expire(url, 10)
+            redis.expire("cache:" + url, 10)
 
         # key = "count:{" + url + "}"
         # redis.incr(key)
