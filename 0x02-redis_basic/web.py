@@ -4,7 +4,7 @@
 from datetime import timedelta
 # from functools import wraps
 
-from redis import Redis
+import redis
 import requests
 
 
@@ -16,34 +16,34 @@ def get_page(url: str) -> str:
     ---
     url: the url to be requested
     '''
-    with Redis() as redis:
-        cache = redis.get(url)
+    with redis.Redis() as db:
+        cache = db.get(url)
         if cache:
             res = cache.decode("utf-8")
         else:
             res = requests.get(url).text
-            redis.setex(url, timedelta(seconds=10), res)
-            redis.setex("cache:" + url, timedelta(seconds=10), res)
-            redis.expire(url, 10)
-            redis.expire("cache:" + url, 10)
+            db.setex(url, timedelta(seconds=10), res)
+            db.setex("cache:" + url, timedelta(seconds=10), res)
+            db.expire(url, 10)
+            db.expire("cache:" + url, 10)
 
         # key = "count:{" + url + "}"
-        # redis.incr(key)
-        redis.hincrby("count", url, 1)
+        # db.incr(key)
+        db.hincrby("count", url, 1)
 
     return res
 
 
 if __name__ == "__main__":
-    redis = Redis()
+    db = redis.Redis()
 
     url = "http://slowwly.robertomurray.co.uk"
     print(get_page(url)[:1000])
-    # print(redis.get(f"count:{{{url}}}"))
-    print(redis.hget("count", url))
-    # get_page(url)
-    # get_page(url)
-    print(redis.hget("count", url))
+    # print(db.get(f"count:{{{url}}}"))
+    print(db.hget("count", url))
+    get_page(url)
+    get_page(url)
+    print(db.hget("count", url))
 
-    # redis.flushdb()
-    redis.quit()
+    # db.flushdb()
+    db.quit()
