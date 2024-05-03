@@ -7,6 +7,8 @@ from datetime import timedelta
 import redis
 import requests
 
+# redis.Redis().flushdb()
+
 
 def get_page(url: str) -> str:
     '''get_page: uses <requests> module to obtain the HTML content of <url>,
@@ -27,8 +29,9 @@ def get_page(url: str) -> str:
             db.expire(url, 10)
             db.expire("cache:" + url, 10)
 
-        # key = "count:{" + url + "}"
-        # db.incr(key)
+        key = "count:{" + url + "}"
+        db.incr(key)
+        db.incr("count:" + url)
         db.hincrby("count", url, 1)
 
     return res
@@ -40,10 +43,18 @@ if __name__ == "__main__":
     url = "http://slowwly.robertomurray.co.uk"
     print(get_page(url)[:1000])
     # print(db.get(f"count:{{{url}}}"))
-    print(db.hget("count", url))
+    print(db.hget("count", url),
+          db.get("count:" + url),
+          db.get("count:{" + url + "}")
+          )
+    
     get_page(url)
     get_page(url)
-    print(db.hget("count", url))
+    
+    print(db.hget("count", url),
+          db.get("count:" + url),
+          db.get("count:{" + url + "}")
+          )
 
-    # db.flushdb()
+    db.flushdb()
     db.quit()
