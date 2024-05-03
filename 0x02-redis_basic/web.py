@@ -6,8 +6,6 @@ from datetime import timedelta
 from redis import Redis
 import requests
 
-# redis = Redis()
-
 
 def get_page(url: str) -> str:
     '''get_page: uses <requests> module to obtain the HTML content of <url>,
@@ -23,12 +21,19 @@ def get_page(url: str) -> str:
             res = cache.decode("utf-8")
         else:
             res = requests.get(url).text
-            redis.setx(url, res, timedelta(seconds=10))
+            redis.setex(url, timedelta(seconds=10), res)
 
-        key = "count:" + url
+        key = "count:{" + url + "}"
         redis.incr(key)
 
     return res
 
+if __name__ == "__main__":
+    redis = Redis()
 
-# redis.quit()
+    url = "http://slowwly.robertomurray.co.uk"
+    print(get_page(url)[:1000])
+    # print(redis.get(f"count:{{{url}}}"))
+
+    redis.flushdb()
+    redis.quit()
