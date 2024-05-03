@@ -7,7 +7,7 @@ from datetime import timedelta
 import redis
 import requests
 
-# redis.Redis().flushdb()
+redis.Redis().flushdb()
 
 
 def get_page(url: str) -> str:
@@ -47,10 +47,10 @@ if __name__ == "__main__":
           db.get("count:" + url),
           db.get("count:{" + url + "}")
           )
-    
+
     get_page(url)
     get_page(url)
-    
+
     print(db.hget("count", url),
           db.get("count:" + url),
           db.get("count:{" + url + "}")
