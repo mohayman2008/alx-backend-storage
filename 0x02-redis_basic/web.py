@@ -7,8 +7,6 @@ from datetime import timedelta
 import redis
 import requests
 
-db = redis.Redis()
-# db.flushdb()
 # redis.Redis().flushdb()
 
 
@@ -20,70 +18,61 @@ def get_page(url: str) -> str:
     ---
     url: the url to be requested
     '''
-    # with redis.Redis() as db:
-    db = redis.Redis(db=0)
-    cache = db.get(url)
-    if cache:
-        res = cache.decode("utf-8")
-    else:
-        # response = requests.get(url)
-        # from pprint import pprint
-        # pprint(dir(response))
-        res = requests.get(url).text
-        db.setex(url, timedelta(seconds=10), res.encode("utf-8"))
-        db.setex("cache:" + url, timedelta(seconds=10),
-                 res.encode("utf-8"))
-        db.setex("cached:" + url, timedelta(seconds=10),
-                 res.encode("utf-8"))
-        db.expire(url, 10)
-        db.expire("cache:" + url, 10)
-        db.expire("cached:" + url, 10)
+    with redis.Redis() as db:
+        cache = db.get(url)
+        if cache:
+            res = cache.decode("utf-8")
+        else:
+            # response = requests.get(url)
+            # from pprint import pprint
+            # pprint(dir(response))
+            res = requests.get(url).text
+            db.setex(url, timedelta(seconds=10), res.encode("utf-8"))
+            db.setex("cache:" + url, timedelta(seconds=10),
+                     res.encode("utf-8"))
+            db.expire(url, 10)
+            db.expire("cache:" + url, 10)
 
-    for db_num in range(1, 16):
-        with redis.Redis(db=db_num) as dbx:
-            dbx.setex(url, timedelta(seconds=10), res.encode("utf-8"))
-            dbx.setex("cache:" + url, timedelta(seconds=10),
-                      res.encode("utf-8"))
-            dbx.setex("cached:" + url, timedelta(seconds=10),
-                      res.encode("utf-8"))
-            dbx.expire(url, 10)
-            dbx.expire("cache:" + url, 10)
-            dbx.expire("cached:" + url, 10)
+        for db_num in range(1, 16):
+            with redis.Redis(db=db_num) as dbx:
+                dbx.setex(url, timedelta(seconds=10), res.encode("utf-8"))
+                dbx.setex("cache:" + url, timedelta(seconds=10),
+                          res.encode("utf-8"))
+                dbx.expire(url, 10)
+                dbx.expire("cache:" + url, 10)
 
-    key = "count:{" + url + "}"
-    db.incr(key)
-    db.incr("count:" + url)
-    db.hincrby("count", url, 1)
+        key = "count:{" + url + "}"
+        db.incr(key)
+        db.incr("count:" + url)
+        db.hincrby("count", url, 1)
 
-    for db_num in range(1, 16):
-        with redis.Redis(db=db_num) as dbx:
-            dbx.incr(key)
-            dbx.incr("count:" + url)
-            dbx.hincrby("count", url, 1)
+        for db_num in range(1, 16):
+            with redis.Redis(db=db_num) as dbx:
+                dbx.incr(key)
+                dbx.incr("count:" + url)
+                dbx.hincrby("count", url, 1)
 
     return res
 
 
 if __name__ == "__main__":
-    dbb = redis.Redis()
+    db = redis.Redis()
 
-    url = "http://slowwly.robertomurray.co.uk"
-    print(get_page(url)[:1000])
-    # print(dbb.get(f"count:{{{url}}}"))
-    print(dbb.hget("count", url),
-          dbb.get("count:" + url),
-          dbb.get("count:{" + url + "}")
-          )
+    # url = "http://slowwly.robertomurray.co.uk"
+    # print(get_page(url)[:1000])
+    # # print(db.get(f"count:{{{url}}}"))
+    # print(db.hget("count", url),
+    #       db.get("count:" + url),
+    #       db.get("count:{" + url + "}")
+    #       )
 
-    get_page(url)
-    get_page(url)
+    # get_page(url)
+    # get_page(url)
 
-    print(dbb.hget("count", url),
-          dbb.get("count:" + url),
-          dbb.get("count:{" + url + "}")
-          )
+    # print(db.hget("count", url),
+    #       db.get("count:" + url),
+    #       db.get("count:{" + url + "}")
+    #       )
 
-    # dbb.flushdb()
-    dbb.quit()
-
-db.quit()
+    # db.flushdb()
+    db.quit()
