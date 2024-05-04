@@ -23,7 +23,11 @@ def get_page(url: str) -> str:
         if cache:
             res = cache.decode("utf-8")
         else:
+            response = requests.get(url)
+            from pprint import pprint
+            # pprint(dir(response))
             res = requests.get(url).text
+            print(res.encode()[:200])
             db.setex(url, timedelta(seconds=10), res)
             db.setex("cache:" + url, timedelta(seconds=10), res)
             db.expire(url, 10)
