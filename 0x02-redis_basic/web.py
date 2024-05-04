@@ -21,6 +21,7 @@ def get_page(url: str) -> str:
     url: the url to be requested
     '''
     # with redis.Redis() as db:
+    db = redis.Redis(db=0)
     cache = db.get(url)
     if cache:
         res = cache.decode("utf-8")
@@ -32,16 +33,22 @@ def get_page(url: str) -> str:
         db.setex(url, timedelta(seconds=10), res.encode("utf-8"))
         db.setex("cache:" + url, timedelta(seconds=10),
                  res.encode("utf-8"))
+        db.setex("cached:" + url, timedelta(seconds=10),
+                 res.encode("utf-8"))
         db.expire(url, 10)
         db.expire("cache:" + url, 10)
+        db.expire("cached:" + url, 10)
 
     for db_num in range(1, 16):
         with redis.Redis(db=db_num) as dbx:
             dbx.setex(url, timedelta(seconds=10), res.encode("utf-8"))
             dbx.setex("cache:" + url, timedelta(seconds=10),
                       res.encode("utf-8"))
+            dbx.setex("cached:" + url, timedelta(seconds=10),
+                      res.encode("utf-8"))
             dbx.expire(url, 10)
             dbx.expire("cache:" + url, 10)
+            dbx.expire("cached:" + url, 10)
 
     key = "count:{" + url + "}"
     db.incr(key)
