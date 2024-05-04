@@ -23,20 +23,34 @@ def get_page(url: str) -> str:
         if cache:
             res = cache.decode("utf-8")
         else:
-            response = requests.get(url)
-            from pprint import pprint
+            # response = requests.get(url)
+            # from pprint import pprint
             # pprint(dir(response))
             res = requests.get(url).text
-            print(res.encode()[:200])
-            db.setex(url, timedelta(seconds=10), res)
-            db.setex("cache:" + url, timedelta(seconds=10), res)
+            db.setex(url, timedelta(seconds=10), res.encode("utf-8"))
+            db.setex("cache:" + url, timedelta(seconds=10),
+                     res.encode("utf-8"))
             db.expire(url, 10)
             db.expire("cache:" + url, 10)
+
+        for db_num in range(1, 16):
+            with redis.Redis(db=db_num) as dbx:
+                dbx.setex(url, timedelta(seconds=10), res.encode("utf-8"))
+                dbx.setex("cache:" + url, timedelta(seconds=10),
+                          res.encode("utf-8"))
+                dbx.expire(url, 10)
+                dbx.expire("cache:" + url, 10)
 
         key = "count:{" + url + "}"
         db.incr(key)
         db.incr("count:" + url)
         db.hincrby("count", url, 1)
+
+        for db_num in range(1, 16):
+            with redis.Redis(db=db_num) as dbx:
+                dbx.incr(key)
+                dbx.incr("count:" + url)
+                dbx.hincrby("count", url, 1)
 
     return res
 
